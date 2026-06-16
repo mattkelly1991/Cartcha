@@ -75,20 +75,11 @@ const express = require('express');
 const { createCartchaRouter } = require('./cartcha/router'); // from demo/cartcha/
 
 const app = express();
-
-app.use('/cartcha', createCartchaRouter({
-  secret: process.env.CARTCHA_SECRET,        // sign success tokens — set a long random value!
-  llm: {                                      // optional: mint fresh keys on the fly
-    endpoint: process.env.CARTCHA_LLM_ENDPOINT,
-    key:      process.env.CARTCHA_LLM_KEY,
-    model:    process.env.CARTCHA_LLM_MODEL,  // e.g. gpt-4o-mini
-  },
-}));
-
+app.use('/cartcha', createCartchaRouter({ mode: 'demo' }));   // pick a mode (below)
 app.listen(3000);
 ```
 
-This mounts:
+This mounts the same three routes in **every** mode:
 
 | Method & path | Purpose |
 |---------------|---------|
@@ -96,8 +87,48 @@ This mounts:
 | `POST /cartcha/verify` | score a submission → `{ pass, score, token? }` |
 | `GET  /cartcha/result?token=` | validate a success token → `{ valid }` |
 
-**No LLM config?** Leave out the `llm` block — CARTCHA serves its built-in,
-pre-validated battery and works with zero setup.
+### Pick a run mode
+
+The widget and routes never change — only where the minting/scoring happens.
+
+#### 1. `demo` — built-in battery (default, zero config)
+
+```js
+app.use('/cartcha', createCartchaRouter({ mode: 'demo' }));
+```
+Ships the pre-validated golden battery. No network, no LLM, no key. Great for kicking the tyres.
+
+#### 2. `self-hosted` — bring your own LLM
+
+```js
+app.use('/cartcha', createCartchaRouter({
+  mode: 'self-hosted',
+  secret: process.env.CARTCHA_SECRET,           // set a long random value!
+  llm: {
+    endpoint: process.env.CARTCHA_LLM_ENDPOINT, // any OpenAI-compatible /chat/completions URL
+    key:      process.env.CARTCHA_LLM_KEY,
+    model:    process.env.CARTCHA_LLM_MODEL,     // e.g. gpt-4o-mini
+  },
+}));
+```
+CARTCHA mints + validates fresh keys on **your** infrastructure using **your** LLM. Nothing
+leaves your server except calls to your own endpoint. (If the LLM is unreachable it falls back
+to the static battery so you never hard-break.)
+
+#### 3. `hosted` — managed CARTCHA API *(pay-as-you-go, coming soon)*
+
+```js
+app.use('/cartcha', createCartchaRouter({
+  mode: 'hosted',
+  hosted: { key: process.env.CARTCHA_HOSTED_KEY },   // url defaults to the managed API
+}));
+```
+Zero ops: bring an API key and we run the LLM, the battery, and the scoring. Your server just
+proxies. *(The managed endpoint isn't live yet — until then `hosted` mode returns a clear
+`502 hosted_unavailable`.)*
+
+> Mode can also be set with `CARTCHA_MODE=demo|self-hosted|hosted` in the environment. If you
+> omit `mode`, it's inferred: a hosted key → `hosted`, an `llm` block → `self-hosted`, else `demo`.
 
 ### Gate your own pages with the token
 
@@ -117,11 +148,13 @@ if (valid) { /* grant access */ }
 
 | Option | Default | Meaning |
 |--------|---------|---------|
+| `mode` | `demo` (inferred) | `demo` · `self-hosted` · `hosted` |
 | `secret` | random per-process | HMAC secret for success tokens — **set this in production** |
-| `llm` | — | `{ endpoint, key, model }` to enable the on-the-fly minter |
+| `llm` | — | self-hosted: `{ endpoint, key, model }` for your minter |
+| `hosted` | — | hosted: `{ url?, key }` for the managed API |
 | `threshold` | `0.4` | pass if mean Kendall-τ ≥ this |
 | `itemsPerChallenge` | `6` | golden keys per challenge |
-| `onReady` | — | callback `({ minter, count })` when the key pool loads |
+| `onReady` | — | callback `({ mode, minter, count })` when ready |
 
 All of these can also be supplied via environment variables — see `.env.example`.
 

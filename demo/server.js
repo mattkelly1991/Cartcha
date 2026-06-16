@@ -26,12 +26,14 @@ const { createCartchaRouter } = require('./cartcha/router');
 const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 
-// The whole CARTCHA API in one line.
+// The whole CARTCHA API in one line. Mode comes from CARTCHA_MODE (default: demo).
 app.use(
   '/api',
   createCartchaRouter({
+    mode: process.env.CARTCHA_MODE,
     secret: process.env.CARTCHA_SECRET,
-    onReady: ({ minter, count }) => console.log(`[cartcha] minter=${minter} keys=${count}`),
+    onReady: (info) =>
+      console.log(`[cartcha] mode=${info.mode} minter=${info.minter} keys=${info.count}`),
   })
 );
 

@@ -124,13 +124,11 @@ It's two pieces — a `<script>` + `<div>` on the page, and one line of Express 
 ```
 
 ```js
-app.use('/cartcha', createCartchaRouter({
-  secret: process.env.CARTCHA_SECRET,
-  llm: { endpoint: process.env.CARTCHA_LLM_ENDPOINT, key: process.env.CARTCHA_LLM_KEY },
-}));
+app.use('/cartcha', createCartchaRouter({ mode: 'demo' }));
+// modes: 'demo' (built-in battery) · 'self-hosted' (your LLM) · 'hosted' (managed API, soon)
 ```
 
-Full copy-paste guide: **[`INTEGRATION.md`](INTEGRATION.md)**.
+Full copy-paste guide + all three run modes: **[`INTEGRATION.md`](INTEGRATION.md)**.
 
 ---
 

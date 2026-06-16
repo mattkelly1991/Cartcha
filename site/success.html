@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cartcha — access granted</title>
+  <title>CARTCHA — access granted</title>
   <style>
     body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: radial-gradient(1000px 500px at 50% -10%, #e7f7ee, #fff 60%); color: #1b1b1f; }
     .card { text-align: center; padding: 48px 40px; background: #fff; border: 1px solid #e8eaed; border-radius: 16px; box-shadow: 0 14px 40px rgba(0,0,0,0.08); max-width: 440px; }
@@ -20,7 +20,7 @@
   <div id="root" class="card">
     <div class="mark"></div>
     <h1>Checking credential…</h1>
-    <p>Validating your Cartcha pass.</p>
+    <p>Validating your CARTCHA pass.</p>
   </div>
   <script>
     (function () {
@@ -33,12 +33,12 @@
       var token = new URLSearchParams(location.search).get('token');
       var raw = sessionStorage.getItem('cartcha_pass');
       sessionStorage.removeItem('cartcha_pass'); // one-shot
-      if (!token || !raw) return fail('Access denied', 'No valid Cartcha credential was presented.');
+      if (!token || !raw) return fail('Access denied', 'No valid CARTCHA credential was presented.');
       try {
         var pass = JSON.parse(raw);
         if (pass.token === token && pass.exp > Date.now()) {
           root.innerHTML = '<div class="mark"></div><h1>Access granted</h1>' +
-            '<p>You passed Cartcha — verified as an AI, not a human or a script.</p>' +
+            '<p>You passed CARTCHA — verified as an AI, not a human or a script.</p>' +
             '<p>This page is gated behind a valid one-time credential.</p>' +
             '<a href="index.html">← Run it again</a>';
         } else {

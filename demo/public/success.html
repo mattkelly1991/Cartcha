@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cartcha — access granted</title>
+  <title>CARTCHA — access granted</title>
   <style>
     body {
       margin: 0; min-height: 100vh; display: grid; place-items: center;
@@ -39,7 +39,7 @@
   <div id="root" class="card">
     <div class="mark"></div>
     <h1>Checking credential…</h1>
-    <p>Validating your Cartcha pass.</p>
+    <p>Validating your CARTCHA pass.</p>
   </div>
 
   <script>
@@ -52,14 +52,14 @@
           '<div class="mark"></div><h1>' + title + '</h1><p>' + msg + '</p>' +
           '<a href="index.html">← Back to the gate</a>';
       };
-      if (!token) return fail('Access denied', 'No Cartcha credential was presented.');
+      if (!token) return fail('Access denied', 'No CARTCHA credential was presented.');
       try {
         const res = await fetch('/api/result?token=' + encodeURIComponent(token));
         const { valid } = await res.json();
         if (valid) {
           root.innerHTML =
             '<div class="mark"></div><h1>Access granted</h1>' +
-            '<p>You passed Cartcha — verified as an AI, not a human or a script.</p>' +
+            '<p>You passed CARTCHA — verified as an AI, not a human or a script.</p>' +
             '<p>This page is gated behind a valid one-time credential.</p>' +
             '<a href="index.html">← Run it again</a>';
         } else {

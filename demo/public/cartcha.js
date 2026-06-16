@@ -1,5 +1,5 @@
 /**
- * Cartcha widget — the shippable client.
+ * CARTCHA widget — the shippable client.
  *
  * Renders a reCAPTCHA-style "I am not a human" toggle. On activation it fetches a
  * challenge (sets of nonsense tokens to rank by a property), lets an LLM answer, submits,
@@ -13,11 +13,10 @@
 (function () {
   'use strict';
 
-  const API = {
-    challenge: '/api/challenge',
-    verify: '/api/verify',
-    demoSolve: '/api/demo-solve',
-  };
+  function url(p) {
+    const base = (state.opts && state.opts.apiBase) || '/api';
+    return base.replace(/\/$/, '') + p;
+  }
 
   const state = {
     el: null,
@@ -60,7 +59,7 @@
     const brand = h(
       'div',
       'cartcha-brand',
-      '<span class="cartcha-mark">\uD83E\uDD16</span><span class="cartcha-logo">cartcha</span>Privacy &middot; Terms'
+      '<span class="cartcha-mark">\uD83E\uDD16</span><span class="cartcha-logo">CARTCHA</span>Privacy &middot; Terms'
     );
     box.append(check, label, brand);
 
@@ -90,20 +89,12 @@
       inner.appendChild(item);
     });
 
-    const actions = h('div', 'cartcha-actions');
-    const ai = h('button', 'cartcha-btn primary', '\uD83E\uDD16 Simulate AI');
-    const human = h('button', 'cartcha-btn ghost', '\uD83E\uDDCD Try as Human');
-    ai.addEventListener('click', simulateAI);
-    human.addEventListener('click', tryAsHuman);
-    actions.append(ai, human);
-    inner.appendChild(actions);
-
     inner.appendChild(h('div', 'cartcha-status'));
     inner.appendChild(
       h(
         'div',
         'cartcha-agent',
-        'Agent? Read <code>window.cartcha.challenge</code> and call ' +
+        'Agent? Read <code>window.cartcha.challengeData</code> and call ' +
           '<code>window.cartcha.submit(answers)</code>.'
       )
     );
@@ -122,7 +113,7 @@
     setCheck('loading');
     status('');
     try {
-      const res = await fetch(API.challenge, { method: 'POST' });
+      const res = await fetch(url('/challenge'), { method: 'POST' });
       const challenge = await res.json();
       state.challenge = challenge;
       window.cartcha.challenge = challenge;
@@ -143,7 +134,7 @@
     if (!state.challenge) throw new Error('no active challenge');
     setCheck('loading');
     status('Verifying\u2026');
-    const res = await fetch(API.verify, {
+    const res = await fetch(url('/verify'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ challengeId: state.challenge.challengeId, answers }),
@@ -172,50 +163,51 @@
     }
   }
 
-  async function simulateAI() {
-    try {
-      const res = await fetch(API.demoSolve, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ challengeId: state.challenge.challengeId }),
-      });
-      const { answers, error } = await res.json();
-      if (error) {
-        status('Challenge expired. Click to retry.', 'err');
-        return;
-      }
-      await submit(answers);
-    } catch (e) {
-      status('Simulation failed.', 'err');
-    }
+  function redirectWithToken(target, token) {
+    const sep = target.indexOf('?') === -1 ? '?' : '&';
+    location.href = token ? target + sep + 'token=' + encodeURIComponent(token) : target;
   }
 
-  function tryAsHuman() {
-    // A guessing human = a random permutation per item.
-    const answers = {};
-    state.challenge.items.forEach((it) => {
-      answers[it.id] = it.tokens
-        .map((t) => [Math.random(), t])
-        .sort((a, b) => a[0] - b[0])
-        .map((p) => p[1]);
-    });
-    submit(answers);
-  }
-
+  /**
+   * Mount the widget.
+   * @param {string|Element} selector  container element or CSS selector
+   * @param {object} [opts]
+   * @param {string} [opts.apiBase]    base path of the CARTCHA API (default '/api')
+   * @param {string} [opts.redirect]   URL to send the user to on pass (default 'success.html')
+   * @param {(token:string)=>void} [opts.onPass]  override the default redirect behaviour
+   * @param {(result:object)=>void} [opts.onFail]
+   */
   function render(selector, opts) {
     state.el = typeof selector === 'string' ? document.querySelector(selector) : selector;
     if (!state.el) throw new Error('cartcha: container not found');
+    const o = opts || {};
+    const redirect = o.redirect || 'success.html';
     state.opts = Object.assign(
       {
-        onPass: (token) => {
-          location.href = 'success.html?token=' + encodeURIComponent(token || '');
-        },
+        apiBase: '/api',
+        redirect,
+        onPass: (token) => redirectWithToken(redirect, token),
         onFail: () => {},
       },
-      opts || {}
+      o
     );
     renderBox();
   }
 
+  function autoInit() {
+    const el = document.querySelector('[data-cartcha]');
+    if (!el) return;
+    render(el, {
+      apiBase: el.getAttribute('data-api-base') || undefined,
+      redirect: el.getAttribute('data-redirect') || undefined,
+    });
+  }
+
   window.cartcha = { render, start, submit, get challengeData() { return state.challenge; } };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoInit);
+  } else {
+    autoInit();
+  }
 })();

@@ -1,5 +1,5 @@
 {
-  "_comment": "Golden Cartcha keys. canonical = consensus ordering LEAST -> MOST of the property, from Exp 16a Borda consensus (4 model families x 3 runs), deploy-framing validated in Exp 16b. Tokens are anchorless nonsense: LLMs converge on an ordering (mean pairwise Kendall-tau ~+0.8); humans are indistinguishable from random (tau ~0).",
+  "_comment": "Golden CARTCHA keys. canonical = consensus ordering LEAST -> MOST of the property, from Exp 16a Borda consensus (4 model families x 3 runs), deploy-framing validated in Exp 16b. Tokens are anchorless nonsense: LLMs converge on an ordering (mean pairwise Kendall-tau ~+0.8); humans are indistinguishable from random (tau ~0).",
   "keys": [
     { "id": "ancient",   "prop": "ancient",   "canonical": ["kra", "snou", "zziss", "cloox", "thrae", "thraunk"] },
     { "id": "spicy",     "prop": "spicy",     "canonical": ["pla", "twou", "flong", "queemb", "snaenk", "fnooff"] },

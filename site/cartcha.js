@@ -1,5 +1,5 @@
 /**
- * Cartcha widget — STATIC SHOWCASE build (GitHub Pages, no backend).
+ * CARTCHA widget — STATIC SHOWCASE build (GitHub Pages, no backend).
  *
  * Mints and verifies entirely in the browser so it can run on static hosting.
  * ⚠️  Because there's no server, the canonical answers live in this file — i.e. they

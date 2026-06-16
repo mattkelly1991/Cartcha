@@ -2,7 +2,7 @@
   "name": "cartcha-demo",
   "version": "0.1.0",
   "private": true,
-  "description": "Cartcha — a reverse-CAPTCHA that only an LLM can pass. Demo server + shippable widget.",
+  "description": "CARTCHA — a reverse-CAPTCHA that only an LLM can pass. Demo server + shippable widget.",
   "type": "commonjs",
   "main": "server.js",
   "scripts": {

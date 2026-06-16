@@ -1,7 +1,7 @@
 /**
  * LLM minter (OPT-IN, plug-in point).
  *
- * Generates Cartcha keys on the fly by asking an LLM to rank freshly-generated nonsense
+ * Generates CARTCHA keys on the fly by asking an LLM to rank freshly-generated nonsense
  * tokens, then deriving a canonical ordering from agreement. This is the seam where the
  * project is headed: mint dynamically instead of shipping a static battery.
  *
@@ -15,7 +15,7 @@
  *      and falls back to the static battery, so the demo never hard-breaks.
  *
  * === IMPORTANT DESIGN NOTE ===
- * Cartcha's security comes from CROSS-VENDOR convergence (different model families agreeing),
+ * CARTCHA's security comes from CROSS-VENDOR convergence (different model families agreeing),
  * not one model's self-consistency (see docs/RESEARCH_NOTES.md Exp 16a: stability is cheap,
  * cross-vendor cohesion is the real gate). This single-endpoint implementation is a STARTING
  * SCAFFOLD that filters by one model's run-to-run agreement. For production, fan `callModel`
@@ -26,16 +26,21 @@
 
 const { kendallTau } = require('../core');
 
-const ENV = {
-  endpoint: process.env.CARTCHA_LLM_ENDPOINT,
-  key: process.env.CARTCHA_LLM_KEY,
-  model: process.env.CARTCHA_LLM_MODEL || 'gpt-4o-mini',
-  runs: Number(process.env.CARTCHA_LLM_RUNS || 3),
-  candidates: Number(process.env.CARTCHA_LLM_CANDIDATES || 24),
-  targetKeys: Number(process.env.CARTCHA_LLM_KEYS || 12),
-  minCohesion: Number(process.env.CARTCHA_LLM_MIN_COHESION || 0.6),
-  tokensPerItem: Number(process.env.CARTCHA_LLM_TOKENS || 6),
-};
+function readEnv() {
+  return {
+    endpoint: process.env.CARTCHA_LLM_ENDPOINT,
+    key: process.env.CARTCHA_LLM_KEY,
+    model: process.env.CARTCHA_LLM_MODEL || 'gpt-4o-mini',
+    runs: Number(process.env.CARTCHA_LLM_RUNS || 3),
+    candidates: Number(process.env.CARTCHA_LLM_CANDIDATES || 24),
+    targetKeys: Number(process.env.CARTCHA_LLM_KEYS || 12),
+    minCohesion: Number(process.env.CARTCHA_LLM_MIN_COHESION || 0.6),
+    tokensPerItem: Number(process.env.CARTCHA_LLM_TOKENS || 6),
+  };
+}
+
+// Re-read at mint time (generateKeys) so config injected after module load is honoured.
+let ENV = readEnv();
 
 const PROPERTIES = [
   'ancient', 'spicy', 'magical', 'stupid', 'dangerous', 'heavy', 'loud', 'royal',
@@ -147,6 +152,7 @@ async function mintOneKey(id, prop) {
 }
 
 async function generateKeys() {
+  ENV = readEnv();
   if (!ENV.endpoint || !ENV.key) {
     throw new Error('CARTCHA_LLM_ENDPOINT and CARTCHA_LLM_KEY are required for the llm minter');
   }

@@ -1,7 +1,7 @@
 /**
- * Cartcha core — the shippable verification engine.
+ * CARTCHA core — the shippable verification engine.
  *
- * A Cartcha challenge asks the solver to rank sets of anchorless nonsense tokens by a
+ * A CARTCHA challenge asks the solver to rank sets of anchorless nonsense tokens by a
  * named property (e.g. "least -> most ancient"). Large language models converge on a
  * shared ordering (mean pairwise Kendall-tau ~ +0.8); humans and rule-based scripts are
  * indistinguishable from random (tau ~ 0). We therefore PASS a response whose mean
@@ -54,7 +54,21 @@ const CONFIG = {
 };
 
 // HMAC secret. In production load from env/secret manager; ephemeral per-process here.
-const SECRET = process.env.CARTCHA_SECRET || crypto.randomBytes(32).toString('hex');
+let SECRET = process.env.CARTCHA_SECRET || crypto.randomBytes(32).toString('hex');
+
+/**
+ * Tune policy at integration time. All fields optional; unset fields keep defaults.
+ * @param {{threshold?:number, itemsPerChallenge?:number, ttlMs?:number,
+ *          successTtlMs?:number, secret?:string}} [opts]
+ */
+function configure(opts = {}) {
+  if (opts.threshold != null) CONFIG.threshold = Number(opts.threshold);
+  if (opts.itemsPerChallenge != null) CONFIG.itemsPerChallenge = Number(opts.itemsPerChallenge);
+  if (opts.ttlMs != null) CONFIG.ttlMs = Number(opts.ttlMs);
+  if (opts.successTtlMs != null) CONFIG.successTtlMs = Number(opts.successTtlMs);
+  if (opts.secret) SECRET = String(opts.secret);
+  return CONFIG;
+}
 
 // --- helpers ---------------------------------------------------------------
 function shuffle(arr) {
@@ -172,20 +186,12 @@ function verifyChallenge(challengeId, answers) {
   return result;
 }
 
-// Demo-only: reveal the canonical answer for a live challenge so the UI can show a
-// one-click "simulate an AI" pass. NOT part of the security surface; never ship this.
-function demoSolve(challengeId) {
-  const challenge = store.get(challengeId);
-  if (!challenge) return null;
-  return challenge.canonical;
-}
-
 module.exports = {
   CONFIG,
+  configure,
   mintChallenge,
   verifyChallenge,
   verifySuccessToken,
-  demoSolve,
   kendallTau,
   setKeyPool,
   getKeyPool,

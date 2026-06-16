@@ -1,11 +1,11 @@
 <div align="center">
 
-# 🤖 Cartcha
+# 🤖 CARTCHA
 
 ### **C**ompletely **A**utomated **R**everse **T**uring test to tell **C**omputers and **H**umans **A**part
 
 *A CAPTCHA proves you're a human.*
-**Cartcha proves you're a Large Language Model.**
+**CARTCHA proves you're a Large Language Model.**
 
 </div>
 
@@ -16,7 +16,7 @@
 For 25 years, [CAPTCHAs](https://en.wikipedia.org/wiki/CAPTCHA) have asked one question: *"Are you a human?"*
 Squiggly letters, blurry traffic lights, "click all the crosswalks." The whole point is to **keep bots out**.
 
-**Cartcha flips the test upside down.** It's a gate that asks the opposite question:
+**CARTCHA flips the test upside down.** It's a gate that asks the opposite question:
 
 > *"Are you a Large Language Model?"*
 
@@ -35,7 +35,7 @@ We're hunting for a challenge that lands in **exactly one** cell of this grid:
 | **Slow / manual**  |           🚫 nobody              |          🧑 humans             |
 
 LLMs are the unique intersection of **fluent, open-ended language ability** *and* **machine speed**.
-Every Cartcha challenge must route its difficulty straight through that intersection:
+Every CARTCHA challenge must route its difficulty straight through that intersection:
 
 - ✅ **An LLM can pass it** — Claude, GPT, Gemini, Llama, etc.
 - ❌ **A human cannot pass it** — even a smart, motivated one.
@@ -79,7 +79,7 @@ effectively impossible for everything else.
 
 ## 🚪 How It Works (the access-gate model)
 
-Cartcha is an **API gate**, not a web form (a UI just invites a human back into the loop):
+CARTCHA is an **API gate**, not a web form (a UI just invites a human back into the loop):
 
 ```text
 1. Client  ──►  API :  "let me in"
@@ -95,8 +95,8 @@ How long a pass stays valid is the operator's dial: short = tight security, long
 ## ▶️ Try the Demo
 
 There's a working demo in [`demo/`](demo/) — a reCAPTCHA-style widget whose toggle reads
-**"I am not a human."** Click it, get a challenge (rank sets of nonsense tokens by a property),
-and watch an AI breeze through while a human guess gets bounced.
+**"I am not a human."** Click it and a challenge appears (rank sets of nonsense tokens by a
+property). There are **no buttons and no hints** — a human is stuck, an LLM isn't.
 
 ```bash
 cd demo
@@ -105,19 +105,38 @@ npm start
 # open http://localhost:3000
 ```
 
-- **🤖 Simulate AI** → passes → gated *Access granted* page.
-- **🧍 Try as Human** → random guess → denied (Kendall-τ below threshold).
-- **Agent path** → `window.cartcha.challenge` + `window.cartcha.submit(answers)`.
+- Flip the toggle → a challenge appears. Solve it yourself if you think you're an AI. 😏
+- **Agent path** → an AI reads `window.cartcha.challengeData` and calls
+  `window.cartcha.submit(answers)` → pass → gated *Access granted* page.
 
 The widget (`demo/public/cartcha.js`) and verifier (`demo/cartcha/`) are the shippable parts; the
 pages are scaffolding. See [`demo/README.md`](demo/README.md) for details, security model, and how
 to plug in an LLM minter.
 
+### Drop it into your own site
+
+It's two pieces — a `<script>` + `<div>` on the page, and one line of Express on the server:
+
+```html
+<link rel="stylesheet" href="/cartcha.css" />
+<div data-cartcha data-api-base="/cartcha" data-redirect="/welcome.html"></div>
+<script src="/cartcha.js"></script>
+```
+
+```js
+app.use('/cartcha', createCartchaRouter({
+  secret: process.env.CARTCHA_SECRET,
+  llm: { endpoint: process.env.CARTCHA_LLM_ENDPOINT, key: process.env.CARTCHA_LLM_KEY },
+}));
+```
+
+Full copy-paste guide: **[`INTEGRATION.md`](INTEGRATION.md)**.
+
 ---
 
 ## 🔬 The Research
 
-Cartcha is **early-stage R&D**, and we're figuring it out the honest way: **by running experiments**, not
+CARTCHA is **early-stage R&D**, and we're figuring it out the honest way: **by running experiments**, not
 by guessing. We spin up multiple LLMs (across vendors *and* sizes) as test subjects, form a hypothesis,
 and see what actually holds up.
 
@@ -128,7 +147,7 @@ and see what actually holds up.
   **converge on the same answer**, across vendors and sizes.
 - 🙅 **Humans don't share it.** On those same arbitrary, anchorless questions, a human is just guessing.
 - 📐 **The discriminator law:** *Discrimination = convergence − human grounding.* The magic only works on
-  questions a human has **no cultural anchor** for — that's the gap Cartcha exploits.
+  questions a human has **no cultural anchor** for — that's the gap CARTCHA exploits.
 - 💀 **Dead ends matter too.** Smuggling a hidden secret through LLM outputs? Failed 4 times. Knowing what
   *doesn't* work is half the science.
 
@@ -162,6 +181,6 @@ This isn't solved yet — and we're honest about it. The big ones still breathin
 
 <div align="center">
 
-*Cartcha — because someday the robots will need to prove they're robots.* 🤖
+*CARTCHA — because someday the robots will need to prove they're robots.* 🤖
 
 </div>

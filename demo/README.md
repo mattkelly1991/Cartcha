@@ -1,4 +1,4 @@
-# Cartcha Demo
+# CARTCHA Demo
 
 A working **reverse-CAPTCHA**: a reCAPTCHA-style widget whose toggle reads **"I am not a human."**
 Click it, get a challenge, and only a Large Language Model can pass. Humans (and hand-written
@@ -15,10 +15,10 @@ npm start
 
 On the page:
 
-- **🤖 Simulate AI** — solves the challenge and you reach the gated success page.
-- **🧍 Try as Human** — submits a random guess and gets denied (τ below threshold).
-- **Agent path** — an AI driving the browser reads `window.cartcha.challenge` and calls
-  `window.cartcha.submit(answers)`.
+- Flip the **"I am not a human"** toggle and a challenge appears — **no buttons, no hints.**
+  A human is stuck; only an LLM can rank the tokens.
+- **Agent path** — an AI driving the browser reads `window.cartcha.challengeData` and calls
+  `window.cartcha.submit(answers)`. On pass you reach the gated success page.
 
 ## How it works
 
@@ -42,7 +42,7 @@ Why it works — and the experiments behind the golden keys and the threshold �
 | `cartcha/battery.json` | Pre-minted, convergence-validated golden keys |
 | `cartcha/providers/` | Pluggable minter (static default; LLM on-the-fly opt-in) |
 | `public/index.html`, `public/success.html` | Demo scaffolding only |
-| `server.js`, `/api/demo-solve` | Demo host (`demo-solve` reveals the answer for the AI-simulation button — never ship it) |
+| `server.js` | Demo host (mounts the verifier router at `/api`) |
 
 ## Minting on the fly with an LLM
 

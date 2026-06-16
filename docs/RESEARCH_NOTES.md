@@ -1,8 +1,8 @@
-# Cartcha — Research Notes
+# CARTCHA — Research Notes
 
-> **Cartcha** = **C**ompletely **A**utomated **R**everse **T**uring test to tell **C**omputers and **H**umans **A**part.
+> **CARTCHA** = **C**ompletely **A**utomated **R**everse **T**uring test to tell **C**omputers and **H**umans **A**part.
 >
-> A normal CAPTCHA proves you are a human. Cartcha proves you are a **Large Language Model** — and that
+> A normal CAPTCHA proves you are a human. CARTCHA proves you are a **Large Language Model** — and that
 > *neither a human nor a hand-written program* is on the other end of the line.
 
 This document captures the problem definition, the design constraints, the "dragons" (hard open
@@ -34,7 +34,7 @@ entities in the passing set.
 ```
 
 LLMs are the unique intersection of **fluent open-ended language ability** AND **machine speed/scale**.
-Every Cartcha challenge must route its difficulty through that intersection.
+Every CARTCHA challenge must route its difficulty through that intersection.
 
 ---
 
@@ -127,7 +127,7 @@ model for its **most-likely output** on a constrained, novel prompt. A specific 
 > **only between models sharing the same base/initialization**. That validates the premise that
 > *model identity leaks into outputs*. The paper's channel is **training-time (fine-tuning)** and does
 > not port to inference-time, but the underlying truth — *same-base models share a hidden signal* —
-> is exactly what Cartcha exploits, via inference-time fingerprints instead.
+> is exactly what CARTCHA exploits, via inference-time fingerprints instead.
 
 ### The non-negotiable rule discovered: **mint-time entropy filtering**
 
@@ -227,7 +227,7 @@ prompts — where the model's answer is a near-delta function — ever reach a c
   evocative names) and might carry specific identity where numbers couldn't.
 - **Setup A (contaminated):** 4× general-purpose Opus minions (repo + tool access) nicknamed 10 Heath
   Fritillaries. **One minion explicitly read `docs/RESEARCH_NOTES.md` and announced "this is a
-  Cartcha-style distributional fingerprint challenge"** — i.e., the subject read the answer key and
+  CARTCHA-style distributional fingerprint challenge"** — i.e., the subject read the answer key and
   altered its behavior. **Observer effect / harness leakage.**
 - **Setup B (sealed):** Re-ran with `explore`-type minions, bare prompt, **no repo/tool access**.
   - Generators converged hard on traits: **"Sunpatch" appeared 4/4**; dense amber/copper/rust (orange),
@@ -552,8 +552,8 @@ would inflate the human tail — golden items should be checked for mutual indep
 ### 16b. Eval-framing vs deployment-framing — do the keys transfer to real traffic?
 
 NLA flagged **unverbalized evaluation awareness**: models behave differently when they sense they're being
-tested, and *rewriting inputs to look like genuine deployment traffic reduces it*. Cartcha's 16a minions all
-knew they were taking a test ("rank these nonsense tokens"). If a real LLM meets a Cartcha challenge buried in
+tested, and *rewriting inputs to look like genuine deployment traffic reduces it*. CARTCHA's 16a minions all
+knew they were taking a test ("rank these nonsense tokens"). If a real LLM meets a CARTCHA challenge buried in
 ordinary product traffic, does it still converge the same way? If framing moves the canonical ordering, the
 golden keys don't transfer.
 
@@ -581,7 +581,7 @@ golden keys don't transfer.
    strong items SPICY/MAGIC/DANGEROUS at +0.87). The drift is concentrated in the already-weak items.
 2. **Deployment framing *increases* convergence** on 4 of 6 properties (ANCIENT +0.33→+0.67, SPICY
    +0.40→+0.69, DANGEROUS +0.38→+0.51, STUPID +0.13→+0.35). Consistent with NLA: eval-framing injects
-   self-conscious noise; disguised real traffic lets the model answer straight from its prior. ⇒ **Cartcha is
+   self-conscious noise; disguised real traffic lets the model answer straight from its prior. ⇒ **CARTCHA is
    not merely framing-robust; it may be framing-*preferred*. Mint and/or serve challenges under deployment
    framing.** (Mild drops on MAGIC/ROUND are within the small-sample noise of 2 runs/cell.)
 3. **Verify layer is self-defending.** One Opus *eval* run violated the wire format (emitted `swirt`, a
@@ -653,7 +653,7 @@ Refs: [transformer-circuits.pub/2026/nla](https://transformer-circuits.pub/2026/
 An NLA pairs an **activation verbalizer** (activation → text) with an **activation reconstructor**
 (text → activation), both initialized as copies of a target model and jointly RL-trained to make the
 round-trip `activation → language → activation` reconstruct faithfully. Three findings independently
-corroborate Cartcha's experimental record — and one of them hands us a new mint rule:
+corroborate CARTCHA's experimental record — and one of them hands us a new mint rule:
 
 1. ✅ **Sealed-subject protocol vindicated — AND eval-awareness is *input-tunable* (new mint rule).**
    The paper surfaces **unverbalized evaluation awareness**: "cases where Claude believed, but did not
@@ -661,7 +661,7 @@ corroborate Cartcha's experimental record — and one of them hands us a new min
    evaluation awareness more often on evaluation transcripts than real deployment traffic, and rewriting
    inputs to be more realistic reduces NLA-measured evaluation awareness." This confirms our Exp 7
    observer-effect (tool-enabled minions detected the experiment and contaminated it) **and adds an
-   actionable design rule:** a Cartcha challenge that *looks like a test* may trigger different internal
+   actionable design rule:** a CARTCHA challenge that *looks like a test* may trigger different internal
    behavior — and different convergence — than one that looks like ordinary traffic. **MINT IMPLICATION:**
    disguise challenges as normal requests; do not frame them as a gauntlet, or we measure eval-mode models
    instead of deployment-mode models. (Was not on our radar before this paper.)
@@ -676,7 +676,7 @@ corroborate Cartcha's experimental record — and one of them hands us a new min
 3. ⚠️ **Backbone, NOT proof, of the shared-prior thesis.** The round-trip is strong evidence that natural
    language is a high-bandwidth codec for latent state (theoretical backbone for `oolomb = roundest` and
    Exp 2's byte-perfect reconstruction). **BUT NLAs are intra-model** — verbalizer and reconstructor are
-   copies of the *same* target. Cartcha's core bet is **cross-vendor** convergence (Claude *and* GPT share
+   copies of the *same* target. CARTCHA's core bet is **cross-vendor** convergence (Claude *and* GPT share
    the codebook); this paper does **not** demonstrate that. The paper's own limitations (confabulation;
    "degenerate objective" where an over-expressive reconstructor inverts uninterpretable text) further warn
    that some round-trip fidelity is the reconstructor being clever, not genuine shared structure. ⇒ Treat

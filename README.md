@@ -92,6 +92,29 @@ How long a pass stays valid is the operator's dial: short = tight security, long
 
 ---
 
+## ▶️ Try the Demo
+
+There's a working demo in [`demo/`](demo/) — a reCAPTCHA-style widget whose toggle reads
+**"I am not a human."** Click it, get a challenge (rank sets of nonsense tokens by a property),
+and watch an AI breeze through while a human guess gets bounced.
+
+```bash
+cd demo
+npm install
+npm start
+# open http://localhost:3000
+```
+
+- **🤖 Simulate AI** → passes → gated *Access granted* page.
+- **🧍 Try as Human** → random guess → denied (Kendall-τ below threshold).
+- **Agent path** → `window.cartcha.challenge` + `window.cartcha.submit(answers)`.
+
+The widget (`demo/public/cartcha.js`) and verifier (`demo/cartcha/`) are the shippable parts; the
+pages are scaffolding. See [`demo/README.md`](demo/README.md) for details, security model, and how
+to plug in an LLM minter.
+
+---
+
 ## 🔬 The Research
 
 Cartcha is **early-stage R&D**, and we're figuring it out the honest way: **by running experiments**, not

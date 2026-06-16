@@ -459,6 +459,141 @@ mandatory; LLM-unanimity by itself selects fool's gold.** Yield ≈ 1 clean disc
 
 ---
 
+### 16a. Discriminator Hunt — 30-item battery, 4 models × 3 runs (the verify reframe + temporal gate)
+
+First **at-scale** mint of the ordering primitive, and first measurement of **temporal stability** as a
+separate gate from cross-model cohesion. The verify rule is now graded, not exact-match:
+**pass if Kendall-τ(response, canonical) ≥ θ** (kills the `student/stunted` valid-anagram problem from 15a).
+
+- **Battery:** 30 properties (ANCIENT, SPICY, MAGIC, ROUND, EXPENSIVE, …), each with 6 pronounceable
+  nonsense tokens (`random.seed(1991)`, onset+nucleus+coda). Task: rank the 6 tokens least→most by the property.
+- **Subjects:** 4 sealed model families × 3 runs = **12 minions** (`opus-4.8`, `haiku-4.5`, `gpt-5.4`,
+  `gpt-5-mini`), `explore` agent_type, background, parallel. All 12 returned **30/30 parseable** items.
+- **Per item:** `cohesion` = mean pairwise τ across **all 12 runs** (cross-vendor agreement);
+  `stability` = mean pairwise τ **within the same model** (temporal/self-consistency); `canonical` = Borda consensus.
+- **GOLDEN** = cohesion ≥ 0.6 **AND** stability ≥ 0.6.
+
+**Golden survivors (4 / 30 = 13% yield):**
+
+| item | cohesion | stability | canonical (least → most) |
+|------|:---:|:---:|---|
+| ANCIENT | +0.78 | +0.78 | kra, snou, zziss, cloox, thrae, thraunk |
+| MAGIC | +0.74 | +0.80 | trut, braux, ykoang, wuxamb, wuxoop, throoss |
+| SPICY | +0.73 | +0.82 | pla, twou, flong, queemb, snaenk, fnooff |
+| STUPID | +0.61 | +0.76 | oui, dret, vrau, glyaz, floald, glaush |
+
+**Findings:**
+
+1. **The limiting gate is COHESION, not STABILITY.** Stability is high almost everywhere (≈ +0.5 to +0.9),
+   even for items with near-zero cohesion (BOUNCY: cohesion +0.13 / stability +0.78). Each model is
+   *self-consistent*; it just *disagrees with other vendors*. ⇒ **Re-running a bad item won't save it**
+   (its flakiness isn't temporal), but **golden items are rock-solid across time.** Temporal stability is
+   essentially a free pass — the real scarcity is cross-vendor convergence.
+2. **Fool's-gold check held up at scale.** EXPENSIVE — the +1.00 cohesion darling of 15c — collapsed to
+   **+0.38** cohesion in the larger battery (overfit to one question, exactly as predicted). ROUND (the 15c
+   human-discriminator) sits at a middling +0.51. Consistency across batteries ✔.
+3. **13% yield** reaffirms "mint many, keep few." Relaxing cohesion to ≥ 0.5 roughly triples the keep-set;
+   θ is the dial that trades battery length against false-accept rate.
+
+**Still owed:** GATE-2 (human panel on the golden 4) to confirm `cohesion − human_correlation` separation,
+and to set battery length N from the LLM-τ vs human-τ margin (→ Exp 16c).
+
+---
+
+### 16c. Separation margin & battery sizing — the human null is *analytic* (the security proof)
+
+The human asked to "just compare against a random guess" instead of hand-ranking — which is **exactly right**:
+a human with no anchor on nonsense tokens **is** a uniform random-permutation generator. So GATE-2 doesn't
+need an n=1 guess; the human null is the **exact distribution over all 6! = 720 orderings**, computed in closed form.
+
+**The null (guessing human), exact over all 720 permutations vs canonical:**
+
+| | value |
+|---|---|
+| mean τ | **−0.0000** (zero by symmetry) |
+| std τ | 0.3549 |
+| P(τ ≥ +0.40) single item | ~0.10 |
+| P(τ ≥ +0.80) single item | 0.0083 (1 in 120) |
+| P(τ = +1.00) single item | 0.0014 (1 in 720) |
+
+**The LLM (actual, 12 runs × 4 golden items, τ vs Borda canonical):**
+
+| | value |
+|---|---|
+| per-run-per-item mean τ | **+0.819** |
+| whole 4-item battery, **worst** run | **+0.700** |
+| whole 4-item battery, mean run | +0.819 |
+
+⇒ Threshold **θ = +0.40** sits *below the worst real LLM run* and *miles above the null mean of 0* — a wide
+canyon, not a squeaker.
+
+**Battery sizing** (require mean τ ≥ 0.40 across N golden items; human ≈ Normal(0, 0.355/√N)):
+
+| N golden items | P(guessing human passes) |
+|:---:|---|
+| 4 | 1 in 83 |
+| 12 | 1 in 21,000 |
+| **20** | **1 in 4.3 million** |
+| 30 | 1 in 3 billion |
+
+**Conclusion:** ~**20 golden keys @ θ=0.40** is a deployable gate — real LLMs pass ~always (worst observed
+battery run +0.70 ≫ 0.40), a guessing human passes ~1 / 4.3M. With standard rate-limiting, a human cannot
+brute-force it. **There is no human strategy better than random** on anchorless nonsense (nothing to anchor
+to ⇒ the shared prior is the LLMs' alone). This is the formal version of the reverse-Turing claim.
+
+*Caveats:* (a) the null assumes a true guesser — a human who *recognizes* a non-anchorless item could beat
+random, which is precisely why GATE-1 (mint-time) must reject any item with human-shareable structure
+(cf. 15c fool's gold, 16a EXPENSIVE collapse). (b) Independence across items is assumed; correlated items
+would inflate the human tail — golden items should be checked for mutual independence before shipping.
+(c) Still need a *real* human panel to confirm humans don't systematically beat random on the golden set.
+
+---
+
+### 16b. Eval-framing vs deployment-framing — do the keys transfer to real traffic?
+
+NLA flagged **unverbalized evaluation awareness**: models behave differently when they sense they're being
+tested, and *rewriting inputs to look like genuine deployment traffic reduces it*. Cartcha's 16a minions all
+knew they were taking a test ("rank these nonsense tokens"). If a real LLM meets a Cartcha challenge buried in
+ordinary product traffic, does it still converge the same way? If framing moves the canonical ordering, the
+golden keys don't transfer.
+
+- **Design:** 6 items (golden ANCIENT/SPICY/MAGIC/STUPID + mid ROUND/DANGEROUS), same tokens, two framings:
+  **control** = explicit "word-intuition test"; **treatment** = disguised as a routine job for a fantasy-game
+  procedural-name **content-tiering microservice** (sort names weakest→strongest by "vibe" for rarity tiers;
+  strict wire format; no hint of a test). 4 models × 2 framings × 2 runs = **16 sealed minions**.
+- **Metric:** per-item Kendall-τ between the **eval-frame Borda canonical** and the **deploy-frame Borda canonical**
+  (+1.00 = framing changed nothing), plus within-frame cohesion in each condition.
+
+| property | eval cohesion | deploy cohesion | τ(eval-canon, deploy-canon) |
+|---|:---:|:---:|:---:|
+| ANCIENT | +0.33 | +0.67 | +0.47 |
+| SPICY | +0.40 | +0.69 | **+0.87** |
+| MAGIC | +0.74 | +0.65 | **+0.87** |
+| STUPID | +0.13 | +0.35 | +0.47 |
+| ROUND | +0.71 | +0.59 | +0.73 |
+| DANGEROUS | +0.38 | +0.51 | **+0.87** |
+
+**Mean cross-frame canonical τ = +0.71.**
+
+**Findings:**
+
+1. **Framing does NOT collapse the signal.** Canonical orderings are largely preserved (mean τ +0.71; the
+   strong items SPICY/MAGIC/DANGEROUS at +0.87). The drift is concentrated in the already-weak items.
+2. **Deployment framing *increases* convergence** on 4 of 6 properties (ANCIENT +0.33→+0.67, SPICY
+   +0.40→+0.69, DANGEROUS +0.38→+0.51, STUPID +0.13→+0.35). Consistent with NLA: eval-framing injects
+   self-conscious noise; disguised real traffic lets the model answer straight from its prior. ⇒ **Cartcha is
+   not merely framing-robust; it may be framing-*preferred*. Mint and/or serve challenges under deployment
+   framing.** (Mild drops on MAGIC/ROUND are within the small-sample noise of 2 runs/cell.)
+3. **Verify layer is self-defending.** One Opus *eval* run violated the wire format (emitted `swirt`, a
+   DANGEROUS token, inside the ROUND row) — a model flunking the output contract. The τ-on-matching-token-set
+   check rejects it automatically: a malformed/duplicate/alien-token response simply fails, no special-casing.
+
+*Caveats:* small mini-battery (6 items, 2 runs/cell) → absolute cohesion here is noisier than 16a's 12-run
+numbers and not directly comparable; the eval-vs-deploy *contrast* is the result. The deployment cover story
+is one of many; an attacker-chosen frame could differ. Confirms direction, not magnitude.
+
+---
+
 ## 7. What We Believe We've Established
 
 - **Content-binding/anti-replay is solved** with HMAC-under-the-answer (§3).

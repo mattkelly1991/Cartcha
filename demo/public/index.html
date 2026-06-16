@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cartcha — prove you are an AI</title>
+  <link rel="stylesheet" href="cartcha.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #1b1b1f;
+      background: radial-gradient(1200px 600px at 50% -10%, #eef3fb, #fff 60%);
+      min-height: 100vh;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 56px 20px 80px; }
+    .badge {
+      display: inline-block; font-size: 12px; letter-spacing: 1px; text-transform: uppercase;
+      color: #4a90d9; font-weight: 700; margin-bottom: 10px;
+    }
+    h1 { font-size: 40px; margin: 0 0 8px; letter-spacing: -1px; }
+    h1 .bot { font-size: 38px; }
+    .sub { font-size: 18px; color: #5f6368; margin: 0 0 8px; line-height: 1.5; }
+    .acr { font-size: 13px; color: #9aa0a6; margin: 0 0 36px; }
+    .stage {
+      display: flex; justify-content: center; padding: 28px; background: #fff;
+      border: 1px solid #e8eaed; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+    .how { margin-top: 40px; }
+    .how h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.6px; color: #5f6368; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+    .card { background: #fff; border: 1px solid #e8eaed; border-radius: 10px; padding: 16px; }
+    .card b { display: block; margin-bottom: 4px; }
+    .card p { margin: 0; font-size: 14px; color: #5f6368; line-height: 1.5; }
+    .matrix { font-size: 13px; color: #5f6368; }
+    code { font-family: "SF Mono", Consolas, monospace; background: #f1f3f4; padding: 1px 5px; border-radius: 4px; }
+    footer { margin-top: 48px; font-size: 12px; color: #9aa0a6; }
+    a { color: #4a90d9; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <span class="badge">reverse CAPTCHA</span>
+    <h1><span class="bot">🤖</span> Cartcha</h1>
+    <p class="sub">A normal CAPTCHA proves you're a human. <b>Cartcha proves you're a Large Language Model</b> — and that neither a human nor a hand-written script is on the other end.</p>
+    <p class="acr"><b>C</b>ompletely <b>A</b>utomated <b>R</b>everse <b>T</b>uring test to tell <b>C</b>omputers and <b>H</b>umans <b>A</b>part.</p>
+
+    <div class="stage">
+      <div id="cartcha"></div>
+    </div>
+
+    <div class="how">
+      <h2>How it works</h2>
+      <div class="grid">
+        <div class="card"><b>1 · Challenge</b><p>The server mints sets of <i>anchorless nonsense tokens</i> and asks you to rank each set by a property (e.g. least → most <i>ancient</i>).</p></div>
+        <div class="card"><b>2 · Convergence</b><p>Different LLM families agree on the ordering (Kendall-τ ≈ +0.8). It comes from a shared language prior — not a rule you can code.</p></div>
+        <div class="card"><b>3 · Humans scatter</b><p>With nothing to anchor to, a human is a random guesser (τ ≈ 0). No human strategy beats chance.</p></div>
+        <div class="card"><b>4 · Verify</b><p>Pass if mean τ vs the canonical ordering ≥ θ. One-shot, time-boxed, no answer ever sent to the client.</p></div>
+      </div>
+      <p class="matrix" style="margin-top:16px">Try the toggle: <code>🤖 Simulate AI</code> passes; <code>🧍 Try as Human</code> guesses randomly and gets bounced.</p>
+    </div>
+
+    <footer>Demo only. The widget (<code>cartcha.js</code>) and verifier (<code>cartcha/</code>) are the shippable parts. See <code>docs/RESEARCH_NOTES.md</code> for the research.</footer>
+  </div>
+
+  <script src="cartcha.js"></script>
+  <script>
+    window.cartcha.render('#cartcha');
+  </script>
+</body>
+</html>

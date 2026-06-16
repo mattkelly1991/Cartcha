@@ -382,6 +382,83 @@ letters, single call), **dynamic/single-use** (novel stimuli + nonce per mint).
 
 ---
 
+## 6.6 Experiment 15 — Scramble autopsy + rule-less ordering (the high-entropy question)
+
+Two-part session probing the user's "grid of characters from inputs" idea, then the pivot to rule-less
+ordering after the grid idea was empirically killed.
+
+### 15a. Letter-scramble grids are SCRIPT-CRACKABLE (mechanical transform = solver exists)
+
+Tested the "encode two secret sentences as a character grid, LLM recovers them, verify by exact-match"
+architecture. Encoding = each word's letters alphabetically sorted (a lossless permutation).
+
+- **v1 (sorted letters, word boundaries KEPT):** 4 sealed models decoded; Opus & GPT-5.4 recovered both
+  10-word secret sentences **byte-perfect**; Haiku/GPT-mini were semantically perfect but hallucinated
+  letters (`sailor→sailors`) or hit alt-anagrams (`student→stunted`). **BUT** a ~15-line non-LLM cracker
+  ("for each token pick the most frequent dictionary anagram") scored **10/10 on both rows.** Reason: once
+  letters are sorted *and word boundaries are known*, almost every English word has exactly ONE dictionary
+  anagram → decoding is a **lookup table**, not a language task.
+- **v2 (sorted letters, boundaries REMOVED — one unbroken stream):** intended to force joint
+  segmentation+unscrambling. A *fair* non-LLM cracker (DP/Viterbi: exactly-20 words from the public
+  instruction, min length 2, each a valid dictionary anagram, maximize unigram frequency) reconstructed
+  **19/20 words**, the only "miss" being `dusty→study` (a valid anagram of the same letters).
+
+**Conclusion (the iron law, now empirically proven):** *Any concrete-rule mechanical transform has a
+solver.* Sort→dictionary inverts it; remove spaces→Viterbi segments it. The LLM's language understanding
+is **irrelevant** to a mechanical task, so a script does it **better and faster**. This validates the
+user's own intuition ("anagrams have famous solvers; we need something made up"). **Difficulty cannot live
+in the transform — only in the rule-less shared prior.** The whole scramble/grid family is DEAD for
+script-resistance. (Also kills the "secret LLM watermark" idea: no shared cross-vendor secret exists;
+text watermarking (SynthID-Text, Kirchenbauer green-list) is per-vendor, key-gated, statistical, and
+replayable — useless for "any LLM" live proof. The only universal LLM-shared signal is the *behavioral*
+prior, not a cryptographic mark.)
+
+### 15b. Rule-less ORDERING converges — and packs ~9.5 bits into ONE question
+
+Pivot: instead of a binary forced-choice (1 bit), ask models to **rank 6 made-up nonsense tokens** by an
+anchorless property ("least → most WET / ROUND / ANGRY / EXPENSIVE / SHARP / SOUR"). No rule; gut only.
+4 sealed models (Opus, Haiku, GPT-5.4, GPT-mini).
+
+- **EXPENSIVE → 4/4 BYTE-IDENTICAL full ranking:** `fnik < mox < thrup < volu < gleeve < parnasse`. Two
+  vendors, two sizes, nonexistent words. A full 6-item ranking is **log₂(6!) ≈ 9.5 bits** of convergent
+  signal from a **single question.**
+- **Strong partial convergence (tails unanimous):** ROUND (`oolomb`/`nooro` roundest — round vowels,
+  `ktan` least), ANGRY (`grackt` angriest 4/4, `vorth` 2nd, `sune` 4th), SOUR (`zizz`/`yark` sourest 4/4).
+- **Contested:** WET (GPT-5.4 & Haiku identical, but **Opus ranked it polarity-REVERSED**) and SHARP
+  (wobbly). → orderings have a **convergence gradient** the mint can filter on, exactly like forced-choice.
+
+**Why this matters:** an ordering question is a **high-entropy single question** (~9.5 bits vs 1 bit) →
+directly attacks **Dragon #8 (flatness / "too many questions needed")**. One converged ranking ≈ ten
+stacked yes/no items.
+
+**Caveat (untested):** the convergent orderings may carry phonetic/morphological **human grounding**
+(`parnasse` *sounds* luxurious; `oolomb` has round vowels) → **fool's-gold risk**. Discriminating power
+still = convergence − human grounding; needs a human-panel test to confirm humans actually scatter on the
+*convergent* orderings (next step). The contested ones (WET/SHARP) are useless either way.
+
+### 15c. Human-panel scoring (n=1) — convergence alone picks FOOL'S GOLD
+
+Scored 1 human against the 4-LLM consensus via mean pairwise Kendall-τ (LLM cohesion vs human-vs-LLM):
+
+| task | LLM cohesion | human-vs-LLM | verdict |
+|------|:---:|:---:|---|
+| ROUND | +0.64 | **−0.73** | 🎯 **DISCRIMINATOR** (human ranked it ~backwards) |
+| ANGRY | +0.80 | +0.83 | 🪙 fool's gold (human matched) |
+| EXPENSIVE | **+1.00** | +0.60 | 😐 partial fool's gold |
+| SOUR | +0.58 | +0.50 | contested |
+| SHARP | +0.38 | +0.27 | contested |
+| WET | +0.00 | −0.43 | dead (LLMs themselves disagree) |
+
+**KEY REFINEMENT (rewrites mint strategy):** *Do NOT mint for maximum LLM agreement.* EXPENSIVE had the
+**highest** LLM cohesion (+1.00) yet the human partly shared it (+0.60) — the most-convergent item was
+**fool's gold**, because high agreement correlates with shared human grounding (`parnasse` sounds fancy).
+The true discriminator (ROUND) had only *middling* LLM cohesion but the human **anti-correlated** (−0.73).
+⇒ **Mint for `convergence − human_correlation`, not for convergence alone. GATE-2 (human-scatter) is
+mandatory; LLM-unanimity by itself selects fool's gold.** Yield ≈ 1 clean discriminator / 6 candidates
+(~17%), consistent with "mint many, keep few." (n=1 human — directional, needs a real panel.)
+
+---
+
 ## 7. What We Believe We've Established
 
 - **Content-binding/anti-replay is solved** with HMAC-under-the-answer (§3).
@@ -402,6 +479,13 @@ letters, single call), **dynamic/single-use** (novel stimuli + nonce per mint).
   (human+LLM), just not worth the per-action friction. Session TTL is the operator's risk dial.
 - **Leading design = the Minted Convergence Battery** (§6.5): mint-time double-gate (LLM-unanimous +
   human-arbitrary) on novel stimuli; cheap exact-match verify; security tunes with battery length N.
+- **Mechanical transforms are a DEAD END** (Exp 15a): any concrete-rule encoding (letter-scramble,
+  space-removal, anagram grids) has a non-LLM solver (dictionary + frequency DP cracked v1 10/10, v2
+  19/20). Difficulty must live in the *rule-less shared prior*, never in the transform. No universal
+  cross-vendor "LLM watermark" exists either (watermarking is per-vendor/key-gated/replayable).
+- **Rule-less ORDERING is a high-entropy question** (Exp 15b): ranking 6 nonsense tokens by an anchorless
+  property converged 4/4 byte-identical on EXPENSIVE (~9.5 bits from one question) with a convergence
+  gradient across properties. Promising answer to the flatness dragon (#8) — pending a human-scatter test.
 
 ## 8. Biggest Open Questions (next targets)
 
@@ -417,6 +501,51 @@ letters, single call), **dynamic/single-use** (novel stimuli + nonce per mint).
 5. ⚠️ **Quantify N.** Measure the real human miss-rate at scale to set battery length N for target
    false-pass odds.
 6. ⚠️ **Version stability.** Do canonical survivors stay canonical across model updates?
+7. 🟢 **Ordering as the high-entropy primitive.** Can rule-less rankings (Exp 15b, ~9.5 bits/question)
+   replace long batteries of 1-bit forced-choices — and do humans actually *scatter* on the rankings that
+   LLMs converge on, or is convergence driven by phonetic/morphological grounding humans share (fool's
+   gold)? Needs a human-panel test on the convergent orderings (EXPENSIVE, ROUND).
+
+---
+
+## 9. Prior Art / External Validation
+
+### Natural Language Autoencoders (Anthropic, 2026)
+
+Refs: [transformer-circuits.pub/2026/nla](https://transformer-circuits.pub/2026/nla/index.html) ·
+[anthropic.com/research/natural-language-autoencoders](https://www.anthropic.com/research/natural-language-autoencoders)
+
+An NLA pairs an **activation verbalizer** (activation → text) with an **activation reconstructor**
+(text → activation), both initialized as copies of a target model and jointly RL-trained to make the
+round-trip `activation → language → activation` reconstruct faithfully. Three findings independently
+corroborate Cartcha's experimental record — and one of them hands us a new mint rule:
+
+1. ✅ **Sealed-subject protocol vindicated — AND eval-awareness is *input-tunable* (new mint rule).**
+   The paper surfaces **unverbalized evaluation awareness**: "cases where Claude believed, but did not
+   say, that it was being evaluated." Crucially, they show it is *tunable by the input*: "NLAs surface
+   evaluation awareness more often on evaluation transcripts than real deployment traffic, and rewriting
+   inputs to be more realistic reduces NLA-measured evaluation awareness." This confirms our Exp 7
+   observer-effect (tool-enabled minions detected the experiment and contaminated it) **and adds an
+   actionable design rule:** a Cartcha challenge that *looks like a test* may trigger different internal
+   behavior — and different convergence — than one that looks like ordinary traffic. **MINT IMPLICATION:**
+   disguise challenges as normal requests; do not frame them as a gauntlet, or we measure eval-mode models
+   instead of deployment-mode models. (Was not on our radar before this paper.)
+
+2. ✅ **Corroborates the covert-identity death (Exps 3, 6, 7).** NLA explanations **confabulate**: "false
+   in their specifics [but] typically thematically faithful to the context" (e.g. correct dynasty, wrong
+   specific king); "claims across multiple adjacent tokens are more likely true." This is the same shape
+   as our 4-time failure to transmit *specific* identity through a lossy semantic channel — **the gist/
+   theme survives, the specific collapses to the decoder's prior.** Independent confirmation that the
+   specific never survives a language bottleneck; only the *kind* of mind does.
+
+3. ⚠️ **Backbone, NOT proof, of the shared-prior thesis.** The round-trip is strong evidence that natural
+   language is a high-bandwidth codec for latent state (theoretical backbone for `oolomb = roundest` and
+   Exp 2's byte-perfect reconstruction). **BUT NLAs are intra-model** — verbalizer and reconstructor are
+   copies of the *same* target. Cartcha's core bet is **cross-vendor** convergence (Claude *and* GPT share
+   the codebook); this paper does **not** demonstrate that. The paper's own limitations (confabulation;
+   "degenerate objective" where an over-expressive reconstructor inverts uninterpretable text) further warn
+   that some round-trip fidelity is the reconstructor being clever, not genuine shared structure. ⇒ Treat
+   as supporting theory, not validation of the cross-vendor claim.
 
 ---
 
